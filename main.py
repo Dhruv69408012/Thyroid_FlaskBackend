@@ -34,6 +34,10 @@ def cleaning(input_data):
 
     return input_data
 
+@app.route('/')
+def hello():
+    return "<p>Hello<p>"
+
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
@@ -52,8 +56,6 @@ def predict():
         with open("xgmodel.pkl", "rb") as model_file:
             model = pickle.load(model_file)
 
-        # Assuming the model expects input as a list
-        # Make predictions using the model
         y_pred = model.predict([input_list])
 
         resulting = [encoding[i] for i in y_pred]
@@ -63,4 +65,4 @@ def predict():
         return jsonify({"error": str(e)})
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
