@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 import xgboost as xgb
 import pickle
 from flask_cors import CORS
+from pymongo import MongoClient
 
 app = Flask(__name__)
 CORS(app)
@@ -16,13 +17,11 @@ encoding = {
 }
 
 def cleaning(input_data):
-    # Convert specific features to float
     float_features = ["TSH", "TT4", "FTI", "T3"]
     for feature in float_features:
         if feature in input_data and input_data[feature] != "":
             input_data[feature] = float(input_data[feature])
 
-    # Handle missing values
     if input_data["TSH"] == "":
         input_data["TSH"] = 2.875
     if input_data["T3"] == "":
@@ -41,6 +40,9 @@ def hello():
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
+        client=MongoClient("mongodb+srv://dhruvvayugundla:DDD123ddd@cluster1.j4w98fr.mongodb.net/Thyroid?retryWrites=true&w=majority")
+        db=client.Thyroid
+        collection=db.users
         data = request.get_json()
         input_data = cleaning(data)
         input_list = [
@@ -60,6 +62,8 @@ def predict():
 
         resulting = [encoding[i] for i in y_pred]
         result = {"condition": resulting[0]}
+        print(input_data["uname"])
+        collection.update_one({"uname":input_data["uname"]},{"$set":{"condition":resulting[0]}})
         return jsonify(result)
     except Exception as e:
         return jsonify({"error": str(e)})
